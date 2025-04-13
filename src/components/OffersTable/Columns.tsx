@@ -11,24 +11,57 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { formatDate } from '@/lib/utils'
 import { ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal } from 'lucide-react'
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
 
 export const Columns: ColumnDef<OfferType>[] = [
 	{
 		accessorKey: 'title',
-		header: 'Offer Title',
+		header: ({ column }) => (
+			<Button
+				variant="ghost"
+				onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+			>
+				Offer Title
+				<ArrowUpDown className="ml-2 h-4 w-4" />
+			</Button>
+		),
 	},
 	{
 		accessorKey: 'productType',
-		header: 'Product Type',
+		header: ({ column }) => (
+			<Button
+				variant="ghost"
+				onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+			>
+				Product Type
+				<ArrowUpDown className="ml-2 h-4 w-4" />
+			</Button>
+		),
 	},
 	{
 		accessorKey: 'insuranceType',
-		header: 'Insurance Type',
+		header: ({ column }) => (
+			<Button
+				variant="ghost"
+				onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+			>
+				Insurance Type
+				<ArrowUpDown className="ml-2 h-4 w-4" />
+			</Button>
+		),
 	},
 	{
 		accessorKey: 'price',
-		header: () => <div className="text-right">Price</div>,
+		header: ({ column }) => (
+			<Button
+				variant="ghost"
+				onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+				className="w-full flex justify-end"
+			>
+				Price
+				<ArrowUpDown className="ml-2 h-4 w-4" />
+			</Button>
+		),
 		cell: ({ row }) => {
 			const price = parseFloat(row.getValue('price'))
 			const formatted = new Intl.NumberFormat('en-US', {
@@ -41,13 +74,23 @@ export const Columns: ColumnDef<OfferType>[] = [
 	},
 	{
 		accessorKey: 'createdAt',
-		header: 'Created Date',
+		header: ({ column }) => (
+			<Button
+				variant="ghost"
+				onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+			>
+				Created Date
+				<ArrowUpDown className="ml-2 h-4 w-4" />
+			</Button>
+		),
 		cell: ({ row }) => {
 			return formatDate(row.getValue('createdAt'))
 		},
 	},
 	{
 		id: 'actions',
+		enableSorting: false,
+		header: () => <span>Actions</span>,
 		cell: ({ row }) => {
 			const offer = row.original
 
