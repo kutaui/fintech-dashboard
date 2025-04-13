@@ -54,7 +54,7 @@ export default function MainSidebar({ children }: MainSidebarProps) {
 					</SidebarMenu>
 				</SidebarContent>
 			</Sidebar>
-			<SidebarInset>
+			<SidebarInset className="min-w-0 flex-1 overflow-hidden">
 				<div className="p-4">
 					<SidebarTrigger />
 					{children}

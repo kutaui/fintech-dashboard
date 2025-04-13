@@ -1,10 +1,12 @@
+import { Columns } from '@/components/OffersTable/Columns'
+import { DataTable } from '@/components/OffersTable/DataTable'
+import { offers } from '@/lib/data/mock-offers'
+
 export default function Home() {
 	return (
-		<main className="flex flex-col items-center justify-center min-h-screen p-8">
-			<h1 className="text-4xl font-bold mb-6">Welcome to FinSureTex</h1>
-			<p className="text-lg text-center max-w-2xl mb-8">
-				Your insurance management solution
-			</p>
+		<main className="flex-1 min-w-0 p-4">
+			<h1 className="text-2xl font-semibold mb-6">Insurance Offers</h1>
+			<DataTable columns={Columns} data={offers} />
 		</main>
-	);
+	)
 }
