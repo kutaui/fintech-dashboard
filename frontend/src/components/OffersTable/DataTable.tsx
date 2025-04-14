@@ -1,7 +1,6 @@
 'use client'
 
 import {
-	ColumnDef,
 	ColumnFiltersState,
 	flexRender,
 	getCoreRowModel,
@@ -12,19 +11,7 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
 	Table,
 	TableBody,
@@ -33,30 +20,28 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
-import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon, FilterIcon } from 'lucide-react'
-import { INSURANCE_CATEGORY, PRODUCT_CATEGORY } from '@/constants/insurance'
 import { useEffect, useState } from 'react'
 
-type DataTableProps<TData, TValue> = {
-	columns: ColumnDef<TData, TValue>[]
-	data: TData[]
-}
+import { ColumnDef } from '@tanstack/react-table'
+import { AddOfferDialog } from './AddOfferDialog'
+import { FilterDialog } from './FilterDialog'
+import { Pagination } from './Pagination'
 
 type PriceFilter = {
 	min?: number
 	max?: number
 }
+type DataTableProps<TData, TValue> = {
+	columns: ColumnDef<TData, TValue>[]
+	data: TData[]
+	onAddOffer?: (newOffer: OfferType) => void
+} 
+
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+	onAddOffer,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -66,10 +51,8 @@ export function DataTable<TData, TValue>({
 	})
 	const [selectedProductTypes, setSelectedProductTypes] = useState<string[]>([])
 	const [selectedInsuranceTypes, setSelectedInsuranceTypes] = useState<string[]>([])
-	const [filterDialogOpen, setFilterDialogOpen] = useState(false)
 	const [pageSize, setPageSize] = useState<number>(10)
 	const [pageIndex, setPageIndex] = useState<number>(0)
-
 	const table = useReactTable({
 		data,
 		columns,
@@ -94,8 +77,9 @@ export function DataTable<TData, TValue>({
 			},
 		},
 	})
+	const pageCount = table.getPageCount()
+	const rowCount = table.getFilteredRowModel().rows.length
 
-	// Ensure the table updates when pagination state changes
 	useEffect(() => {
 		table.setPageSize(pageSize)
 	}, [pageSize, table])
@@ -104,11 +88,6 @@ export function DataTable<TData, TValue>({
 		table.setPageIndex(pageIndex)
 	}, [pageIndex, table])
 
-	// Calculate the pagination range
-	const pageCount = table.getPageCount()
-	const currentPage = pageIndex + 1
-
-	// Function handlers for pagination
 	const handlePageChange = (newPage: number) => {
 		setPageIndex(newPage)
 	}
@@ -124,24 +103,13 @@ export function DataTable<TData, TValue>({
 			setPageIndex(pageIndex + 1)
 		}
 	}
-	
-	// Generate page numbers for pagination
-	const generatePagination = () => {
-		// If we have 7 or fewer pages, show all pages
-		if (pageCount <= 7) {
-			return Array.from({ length: pageCount }, (_, i) => i + 1)
-		}
-		
-		// Show first page, last page, and pages around current page
-		if (currentPage <= 3) {
-			return [1, 2, 3, 4, 5, '...', pageCount]
-		} else if (currentPage >= pageCount - 2) {
-			return [1, '...', pageCount - 4, pageCount - 3, pageCount - 2, pageCount - 1, pageCount]
-		} else {
-			return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', pageCount]
-		}
-	}
 
+	const handlePageSizeChange = (value: string) => {
+		const newPageSize = parseInt(value)
+		setPageSize(newPageSize)
+		setPageIndex(0)
+	}
+	
 	const applyFilters = () => {
 		if (priceRange.min && !isNaN(Number(priceRange.min))) {
 			const minValue = Number(priceRange.min)
@@ -178,8 +146,6 @@ export function DataTable<TData, TValue>({
 		} else {
 			table.getColumn('insuranceType')?.setFilterValue(undefined)
 		}
-
-		setFilterDialogOpen(false)
 	}
 
 	const resetFilters = () => {
@@ -189,7 +155,6 @@ export function DataTable<TData, TValue>({
 		table.getColumn('price')?.setFilterValue(undefined)
 		table.getColumn('productType')?.setFilterValue(undefined)
 		table.getColumn('insuranceType')?.setFilterValue(undefined)
-		setFilterDialogOpen(false)
 	}
 
 	const handleProductTypeChange = (type: string) => {
@@ -208,18 +173,6 @@ export function DataTable<TData, TValue>({
 		)
 	}
 
-	const handlePageSizeChange = (value: string) => {
-		const newPageSize = parseInt(value)
-		setPageSize(newPageSize)
-		// Reset to first page when changing page size
-		setPageIndex(0)
-	}
-
-	// Calculate display counts
-	const rowCount = table.getFilteredRowModel().rows.length
-	const firstVisibleRow = rowCount === 0 ? 0 : pageIndex * pageSize + 1
-	const lastVisibleRow = Math.min((pageIndex + 1) * pageSize, rowCount)
-
 	return (
 		<div className="w-full">
 			<div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between mb-4">
@@ -232,102 +185,17 @@ export function DataTable<TData, TValue>({
 					className="max-w-sm"
 				/>
 				<div className="flex gap-2">
-					<Dialog open={filterDialogOpen} onOpenChange={setFilterDialogOpen}>
-						<DialogTrigger asChild>
-							<Button variant="outline" className="flex items-center gap-2">
-								<FilterIcon className="h-4 w-4" />
-								Filter
-							</Button>
-						</DialogTrigger>
-						<DialogContent className="sm:max-w-md">
-							<DialogHeader>
-								<DialogTitle>Filter Insurance Offers</DialogTitle>
-								<DialogDescription>
-									Set filters to narrow down your search
-								</DialogDescription>
-							</DialogHeader>
-							<div className="grid gap-4 py-4">
-								<div className="space-y-2">
-									<h3 className="font-medium">Price Range</h3>
-									<div className="flex gap-4">
-										<div className="flex-1">
-											<Label htmlFor="min-price">Min ($)</Label>
-											<Input
-												id="min-price"
-												placeholder="Min"
-												type="number"
-												min="0"
-												value={priceRange.min}
-												onChange={(e) =>
-													setPriceRange((prev) => ({
-														...prev,
-														min: e.target.value,
-													}))
-												}
-											/>
-										</div>
-										<div className="flex-1">
-											<Label htmlFor="max-price">Max ($)</Label>
-											<Input
-												id="max-price"
-												placeholder="Max"
-												type="number"
-												min="0"
-												value={priceRange.max}
-												onChange={(e) =>
-													setPriceRange((prev) => ({
-														...prev,
-														max: e.target.value,
-													}))
-												}
-											/>
-										</div>
-									</div>
-								</div>
-
-								<div className="space-y-2">
-									<h3 className="font-medium">Product Type</h3>
-									<div className="grid grid-cols-2 gap-2">
-										{Object.values(PRODUCT_CATEGORY).map((type) => (
-											<div key={type} className="flex items-center space-x-2">
-												<Checkbox
-													id={`product-${type}`}
-													checked={selectedProductTypes.includes(type)}
-													onCheckedChange={() => handleProductTypeChange(type)}
-												/>
-												<Label htmlFor={`product-${type}`}>{type}</Label>
-											</div>
-										))}
-									</div>
-								</div>
-
-								<div className="space-y-2">
-									<h3 className="font-medium">Insurance Type</h3>
-									<div className="grid grid-cols-2 gap-2">
-										{Object.values(INSURANCE_CATEGORY).map((type) => (
-											<div key={type} className="flex items-center space-x-2">
-												<Checkbox
-													id={`insurance-${type}`}
-													checked={selectedInsuranceTypes.includes(type)}
-													onCheckedChange={() =>
-														handleInsuranceTypeChange(type)
-													}
-												/>
-												<Label htmlFor={`insurance-${type}`}>{type}</Label>
-											</div>
-										))}
-									</div>
-								</div>
-							</div>
-							<DialogFooter>
-								<Button variant="outline" onClick={resetFilters}>
-									Reset
-								</Button>
-								<Button onClick={applyFilters}>Apply Filters</Button>
-							</DialogFooter>
-						</DialogContent>
-					</Dialog>
-					<Button variant="outline">Add New Offer</Button>
+					<FilterDialog 
+						priceRange={priceRange}
+						setPriceRange={setPriceRange}
+						selectedProductTypes={selectedProductTypes}
+						selectedInsuranceTypes={selectedInsuranceTypes}
+						handleProductTypeChange={handleProductTypeChange}
+						handleInsuranceTypeChange={handleInsuranceTypeChange}
+						applyFilters={applyFilters}
+						resetFilters={resetFilters}
+					/>
+					<AddOfferDialog onAddOffer={onAddOffer} />
 				</div>
 			</div>
 			<div className="border rounded-md overflow-hidden">
@@ -380,91 +248,16 @@ export function DataTable<TData, TValue>({
 					</TableBody>
 				</Table>
 			</div>
-			<div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 mt-4">
-				<div className="flex items-center space-x-2">
-					<p className="text-sm text-muted-foreground">
-						Showing 
-						<span className="font-medium"> {firstVisibleRow} </span>
-						to 
-						<span className="font-medium"> {lastVisibleRow} </span>
-						of 
-						<span className="font-medium"> {rowCount} </span>
-						entries
-					</p>
-					<div className="flex items-center space-x-2">
-						<Label htmlFor="perPage" className="text-sm">
-							Show
-						</Label>
-						<Select
-							value={pageSize.toString()}
-							onValueChange={handlePageSizeChange}
-						>
-							<SelectTrigger className="h-8 w-[80px]">
-								<SelectValue placeholder={pageSize.toString()} />
-							</SelectTrigger>
-							<SelectContent>
-								{[5, 10, 20, 50, 100].map((size) => (
-									<SelectItem key={size} value={size.toString()}>
-										{size}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-				</div>
-
-				{pageCount > 0 && (
-					<nav className="flex items-center space-x-1">
-						<Button 
-							variant="outline"
-							size="icon"
-							onClick={handlePreviousPage}
-							disabled={pageIndex === 0}
-							className="h-8 w-8"
-							type="button"
-						>
-							<ChevronLeftIcon className="h-4 w-4" />
-							<span className="sr-only">Go to previous page</span>
-						</Button>
-						
-						<div className="flex items-center space-x-1">
-							{generatePagination().map((page, i) => (
-								page === '...' ? (
-									<span
-										key={i}
-										className="flex h-8 w-8 items-center justify-center text-sm text-muted-foreground"
-									>
-										<MoreHorizontalIcon className="h-4 w-4" />
-									</span>
-								) : (
-									<Button
-										key={i}
-										variant={currentPage === page ? "default" : "outline"}
-										size="icon"
-										onClick={() => handlePageChange(Number(page) - 1)}
-										className="h-8 w-8 mx-0.5"
-										type="button"
-									>
-										{page}
-									</Button>
-								)
-							))}
-						</div>
-						
-						<Button 
-							variant="outline"
-							size="icon"
-							onClick={handleNextPage}
-							disabled={pageIndex >= pageCount - 1}
-							className="h-8 w-8"
-							type="button"
-						>
-							<ChevronRightIcon className="h-4 w-4" />
-							<span className="sr-only">Go to next page</span>
-						</Button>
-					</nav>
-				)}
-			</div>
+			<Pagination 
+				pageIndex={pageIndex}
+				pageSize={pageSize}
+				pageCount={pageCount}
+				totalItems={rowCount}
+				handlePageChange={handlePageChange}
+				handlePreviousPage={handlePreviousPage}
+				handleNextPage={handleNextPage}
+				handlePageSizeChange={handlePageSizeChange}
+			/>
 		</div>
 	)
 }
