@@ -33,9 +33,16 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
+import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon, FilterIcon } from 'lucide-react'
 import { INSURANCE_CATEGORY, PRODUCT_CATEGORY } from '@/constants/insurance'
-import { FilterIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type DataTableProps<TData, TValue> = {
 	columns: ColumnDef<TData, TValue>[]
@@ -58,10 +65,10 @@ export function DataTable<TData, TValue>({
 		max: '',
 	})
 	const [selectedProductTypes, setSelectedProductTypes] = useState<string[]>([])
-	const [selectedInsuranceTypes, setSelectedInsuranceTypes] = useState<
-		string[]
-	>([])
+	const [selectedInsuranceTypes, setSelectedInsuranceTypes] = useState<string[]>([])
 	const [filterDialogOpen, setFilterDialogOpen] = useState(false)
+	const [pageSize, setPageSize] = useState<number>(10)
+	const [pageIndex, setPageIndex] = useState<number>(0)
 
 	const table = useReactTable({
 		data,
@@ -72,11 +79,68 @@ export function DataTable<TData, TValue>({
 		getSortedRowModel: getSortedRowModel(),
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
+		manualPagination: false,
+		onPaginationChange: (updater) => {
+			const newState = typeof updater === 'function' ? updater(table.getState().pagination) : updater
+			setPageIndex(newState.pageIndex)
+			setPageSize(newState.pageSize)
+		},
 		state: {
 			sorting,
 			columnFilters,
+			pagination: {
+				pageIndex,
+				pageSize,
+			},
 		},
 	})
+
+	// Ensure the table updates when pagination state changes
+	useEffect(() => {
+		table.setPageSize(pageSize)
+	}, [pageSize, table])
+
+	useEffect(() => {
+		table.setPageIndex(pageIndex)
+	}, [pageIndex, table])
+
+	// Calculate the pagination range
+	const pageCount = table.getPageCount()
+	const currentPage = pageIndex + 1
+
+	// Function handlers for pagination
+	const handlePageChange = (newPage: number) => {
+		setPageIndex(newPage)
+	}
+
+	const handlePreviousPage = () => {
+		if (pageIndex > 0) {
+			setPageIndex(pageIndex - 1)
+		}
+	}
+
+	const handleNextPage = () => {
+		if (pageIndex < pageCount - 1) {
+			setPageIndex(pageIndex + 1)
+		}
+	}
+	
+	// Generate page numbers for pagination
+	const generatePagination = () => {
+		// If we have 7 or fewer pages, show all pages
+		if (pageCount <= 7) {
+			return Array.from({ length: pageCount }, (_, i) => i + 1)
+		}
+		
+		// Show first page, last page, and pages around current page
+		if (currentPage <= 3) {
+			return [1, 2, 3, 4, 5, '...', pageCount]
+		} else if (currentPage >= pageCount - 2) {
+			return [1, '...', pageCount - 4, pageCount - 3, pageCount - 2, pageCount - 1, pageCount]
+		} else {
+			return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', pageCount]
+		}
+	}
 
 	const applyFilters = () => {
 		if (priceRange.min && !isNaN(Number(priceRange.min))) {
@@ -143,6 +207,18 @@ export function DataTable<TData, TValue>({
 				: [...prev, type]
 		)
 	}
+
+	const handlePageSizeChange = (value: string) => {
+		const newPageSize = parseInt(value)
+		setPageSize(newPageSize)
+		// Reset to first page when changing page size
+		setPageIndex(0)
+	}
+
+	// Calculate display counts
+	const rowCount = table.getFilteredRowModel().rows.length
+	const firstVisibleRow = rowCount === 0 ? 0 : pageIndex * pageSize + 1
+	const lastVisibleRow = Math.min((pageIndex + 1) * pageSize, rowCount)
 
 	return (
 		<div className="w-full">
@@ -304,23 +380,90 @@ export function DataTable<TData, TValue>({
 					</TableBody>
 				</Table>
 			</div>
-			<div className="flex items-center justify-end space-x-2 mt-4">
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => table.previousPage()}
-					disabled={!table.getCanPreviousPage()}
-				>
-					Previous
-				</Button>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => table.nextPage()}
-					disabled={!table.getCanNextPage()}
-				>
-					Next
-				</Button>
+			<div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 mt-4">
+				<div className="flex items-center space-x-2">
+					<p className="text-sm text-muted-foreground">
+						Showing 
+						<span className="font-medium"> {firstVisibleRow} </span>
+						to 
+						<span className="font-medium"> {lastVisibleRow} </span>
+						of 
+						<span className="font-medium"> {rowCount} </span>
+						entries
+					</p>
+					<div className="flex items-center space-x-2">
+						<Label htmlFor="perPage" className="text-sm">
+							Show
+						</Label>
+						<Select
+							value={pageSize.toString()}
+							onValueChange={handlePageSizeChange}
+						>
+							<SelectTrigger className="h-8 w-[80px]">
+								<SelectValue placeholder={pageSize.toString()} />
+							</SelectTrigger>
+							<SelectContent>
+								{[5, 10, 20, 50, 100].map((size) => (
+									<SelectItem key={size} value={size.toString()}>
+										{size}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+				</div>
+
+				{pageCount > 0 && (
+					<nav className="flex items-center space-x-1">
+						<Button 
+							variant="outline"
+							size="icon"
+							onClick={handlePreviousPage}
+							disabled={pageIndex === 0}
+							className="h-8 w-8"
+							type="button"
+						>
+							<ChevronLeftIcon className="h-4 w-4" />
+							<span className="sr-only">Go to previous page</span>
+						</Button>
+						
+						<div className="flex items-center space-x-1">
+							{generatePagination().map((page, i) => (
+								page === '...' ? (
+									<span
+										key={i}
+										className="flex h-8 w-8 items-center justify-center text-sm text-muted-foreground"
+									>
+										<MoreHorizontalIcon className="h-4 w-4" />
+									</span>
+								) : (
+									<Button
+										key={i}
+										variant={currentPage === page ? "default" : "outline"}
+										size="icon"
+										onClick={() => handlePageChange(Number(page) - 1)}
+										className="h-8 w-8 mx-0.5"
+										type="button"
+									>
+										{page}
+									</Button>
+								)
+							))}
+						</div>
+						
+						<Button 
+							variant="outline"
+							size="icon"
+							onClick={handleNextPage}
+							disabled={pageIndex >= pageCount - 1}
+							className="h-8 w-8"
+							type="button"
+						>
+							<ChevronRightIcon className="h-4 w-4" />
+							<span className="sr-only">Go to next page</span>
+						</Button>
+					</nav>
+				)}
 			</div>
 		</div>
 	)
