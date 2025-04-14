@@ -11,7 +11,7 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { Home, Settings, User } from 'lucide-react'
+import { Home, Settings, BarChart } from 'lucide-react'
 import Link from 'next/link'
 
 interface MainSidebarProps {
@@ -37,9 +37,9 @@ export default function MainSidebar({ children }: MainSidebarProps) {
 						</SidebarMenuItem>
 						<SidebarMenuItem>
 							<SidebarMenuButton asChild>
-								<Link href="/profile">
-									<User />
-									<span>Profile</span>
+								<Link href="/analytics">
+									<BarChart />
+									<span>Analytics</span>
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>
