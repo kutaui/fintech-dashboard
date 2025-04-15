@@ -1,0 +1,23 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json bun.lock ./
+
+# Install bun for package management
+RUN npm install -g bun
+
+# Install dependencies 
+RUN bun install
+
+# Copy the rest of the application
+COPY . .
+
+# Build the Next.js application
+RUN bun run build
+
+EXPOSE 3000
+
+# Start the Next.js application
+CMD ["bun", "run", "start"] 

@@ -2,10 +2,8 @@ version: '3.8'
 
 services:
   postgres:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: my_postgres_db
+    image: postgres:15
+    container_name: finsuretex_postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: admin
@@ -13,4 +11,55 @@ services:
       POSTGRES_DB: mydatabase
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - finsuretex_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d mydatabase"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    container_name: finsuretex_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      # Override DATABASE_URL for Docker networking
+      DATABASE_URL: postgresql://admin:adminpass@postgres:5432/mydatabase
+    ports:
+      - "3001:3001"
+    networks:
+      - finsuretex_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: finsuretex_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    networks:
+      - finsuretex_network
+
+networks:
+  finsuretex_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
 
