@@ -1,25 +1,32 @@
-'use client'
+import { GalleryVerticalEnd } from "lucide-react"
 
-import { Columns } from '@/components/OffersTable/Columns'
-import { DataTable } from '@/components/OffersTable/DataTable'
-import { offers as mockOffers } from '@/lib/data/mock-offers'
-import { useState } from 'react'
+import { LoginForm } from "@/components/login-form"
 
 export default function Home() {
-	const [offers, setOffers] = useState<OfferType[]>(mockOffers)
-
-	const handleAddOffer = (newOffer: OfferType) => {
-		setOffers((currentOffers) => [...currentOffers, newOffer])
-	}
-
 	return (
-		<main className="flex-1 min-w-0 p-4">
-			<h1 className="text-2xl font-semibold mb-6">Insurance Offers</h1>
-			<DataTable 
-				columns={Columns} 
-				data={offers} 
-				onAddOffer={handleAddOffer} 
+		<div className="grid min-h-svh lg:grid-cols-2">
+		  <div className="flex flex-col gap-4 p-6 md:p-10">
+			<div className="flex justify-center gap-2 md:justify-start">
+			  <a href="#" className="flex items-center gap-2 font-medium">
+				<div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
+				  <GalleryVerticalEnd className="size-4" />
+				</div>
+				Acme Inc.
+			  </a>
+			</div>
+			<div className="flex flex-1 items-center justify-center">
+			  <div className="w-full max-w-xs">
+				<LoginForm />
+			  </div>
+			</div>
+		  </div>
+		  <div className="bg-muted relative hidden lg:block">
+			<img
+			  src="/placeholder.svg"
+			  alt="Image"
+			  className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
 			/>
-		</main>
-	)
+		  </div>
+		</div>
+	  )
 }
