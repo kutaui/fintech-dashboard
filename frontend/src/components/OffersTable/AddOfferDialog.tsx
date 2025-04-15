@@ -62,10 +62,7 @@ export function AddOfferDialog({ onAddOffer }: AddOfferDialogProps) {
 			productType: data.productType as ProductType,
 			insuranceType: data.insuranceType as InsuranceType,
 		}, {
-			onSuccess: (response) => {
-				if (onAddOffer) {
-					onAddOffer(response.offer)
-				}
+			onSuccess: () => {
 				setOpen(false)
 				form.reset()
 			}
