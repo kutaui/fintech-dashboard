@@ -20,9 +20,9 @@ import {
 	SelectValue,
 } from '@/components/ui/select'
 import { INSURANCE_CATEGORY, PRODUCT_CATEGORY } from '@/constants/insurance'
-import useCreateOffer from '@/hooks/api/useCreateOffer'
+import { useOffers } from '@/hooks/useOffers'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
@@ -35,53 +35,76 @@ const offerFormSchema = z.object({
 
 type OfferFormValues = z.infer<typeof offerFormSchema>
 
-const defaultValues: Partial<OfferFormValues> = {
-	title: "",
-	price: undefined,
-	productType: undefined,
-	insuranceType: undefined
+interface EditOfferDialogProps {
+	offer: OfferType
+	onEditOffer?: (updatedOffer: OfferType) => void
+	trigger?: React.ReactNode
+	open?: boolean
+	onOpenChange?: Dispatch<SetStateAction<boolean>>
 }
 
-interface AddOfferDialogProps {
-	onAddOffer?: (newOffer: OfferType) => void
-}
-
-export function AddOfferDialog({ onAddOffer }: AddOfferDialogProps) {
-	const [open, setOpen] = useState(false)
-	const { mutate: createOffer, isPending } = useCreateOffer()
+export function EditOfferDialog({ 
+	offer, 
+	onEditOffer,
+	trigger,
+	open: controlledOpen,
+	onOpenChange: setControlledOpen
+}: EditOfferDialogProps) {
+	const { isUpdating } = useOffers()
+	const [internalOpen, setInternalOpen] = useState(false)
+	
+	// Use either controlled or uncontrolled state
+	const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+	const setOpen = setControlledOpen || setInternalOpen
 	
 	const form = useForm<OfferFormValues>({
 		resolver: zodResolver(offerFormSchema),
-		defaultValues
+		defaultValues: {
+			title: offer.title,
+			price: offer.price,
+			productType: offer.productType,
+			insuranceType: offer.insuranceType
+		}
 	})
 
+	// Reset form when offer changes
+	useEffect(() => {
+		if (offer) {
+			form.reset({
+				title: offer.title,
+				price: offer.price,
+				productType: offer.productType,
+				insuranceType: offer.insuranceType
+			})
+		}
+	}, [offer, form])
+
 	function onSubmit(data: OfferFormValues) {
-		createOffer({
+		const updatedOffer: OfferType = {
+			...offer,
 			title: data.title,
 			price: data.price,
 			productType: data.productType as ProductType,
 			insuranceType: data.insuranceType as InsuranceType,
-		}, {
-			onSuccess: (response) => {
-				if (onAddOffer) {
-					onAddOffer(response.offer)
-				}
-				setOpen(false)
-				form.reset()
-			}
-		})
+		}
+		
+		if (onEditOffer) {
+			onEditOffer(updatedOffer)
+		}
 	}
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button variant="outline">Add New Offer</Button>
-			</DialogTrigger>
+			{trigger && (
+				<DialogTrigger asChild>
+					{trigger}
+				</DialogTrigger>
+			)}
 			<DialogContent className="sm:max-w-[550px]">
 				<DialogHeader>
-					<DialogTitle>Add New Insurance Offer</DialogTitle>
+					<DialogTitle>Edit Insurance Offer</DialogTitle>
 					<DialogDescription>
-						Fill in the details to create a new insurance offer.
+						Update the details of this insurance offer.
 					</DialogDescription>
 				</DialogHeader>
 				
@@ -201,8 +224,8 @@ export function AddOfferDialog({ onAddOffer }: AddOfferDialogProps) {
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={isPending}>
-								{isPending ? "Creating..." : "Create Offer"}
+							<Button type="submit" disabled={isUpdating}>
+								{isUpdating ? "Updating..." : "Update Offer"}
 							</Button>
 						</DialogFooter>
 					</form>

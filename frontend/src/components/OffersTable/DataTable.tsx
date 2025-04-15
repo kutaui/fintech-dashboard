@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/table'
 import { useEffect, useState } from 'react'
 
+import useGetOffers from '@/hooks/api/useGetOffers'
 import { ColumnDef } from '@tanstack/react-table'
 import { AddOfferDialog } from './AddOfferDialog'
 import { FilterDialog } from './FilterDialog'
@@ -33,16 +34,18 @@ type PriceFilter = {
 }
 type DataTableProps<TData, TValue> = {
 	columns: ColumnDef<TData, TValue>[]
-	data: TData[]
+	data?: TData[]
 	onAddOffer?: (newOffer: OfferType) => void
 } 
 
-
 export function DataTable<TData, TValue>({
 	columns,
-	data,
+	data: initialData,
 	onAddOffer,
 }: DataTableProps<TData, TValue>) {
+	const { data: apiData, isLoading, isError } = useGetOffers()
+	const data = initialData || (apiData?.offers as TData[]) || []
+	
 	const [sorting, setSorting] = useState<SortingState>([])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({
@@ -53,6 +56,7 @@ export function DataTable<TData, TValue>({
 	const [selectedInsuranceTypes, setSelectedInsuranceTypes] = useState<string[]>([])
 	const [pageSize, setPageSize] = useState<number>(10)
 	const [pageIndex, setPageIndex] = useState<number>(0)
+
 	const table = useReactTable({
 		data,
 		columns,
@@ -171,6 +175,14 @@ export function DataTable<TData, TValue>({
 				? prev.filter((item) => item !== type)
 				: [...prev, type]
 		)
+	}
+
+	if (isLoading) {
+		return <div className="w-full text-center py-8">Loading offers...</div>
+	}
+	
+	if (isError) {
+		return <div className="w-full text-center py-8 text-red-500">Error loading offers. Please try again later.</div>
 	}
 
 	return (
