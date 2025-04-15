@@ -4,12 +4,39 @@ import registerRoutes from "./routes";
 
 const fastify = Fastify({
   logger: true,
+  bodyLimit: 1048576,
+  ajv: {
+    customOptions: {
+      coerceTypes: true,
+      removeAdditional: "all",
+    },
+  },
 });
 
 fastify.register(import("@fastify/cors"), {
   origin: process.env.CORS_ORIGIN || true,
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 });
+
+fastify.addContentTypeParser(
+  "application/json",
+  { parseAs: "string" },
+  function (req, body: string, done) {
+    if (body === "") {
+      done(null, {});
+    } else {
+      try {
+        const json = JSON.parse(body);
+        done(null, json);
+      } catch (err) {
+        err.statusCode = 400;
+        done(err, undefined);
+      }
+    }
+  }
+);
 
 fastify.register(import("@fastify/formbody"));
 
