@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { INSURANCE_CATEGORY, PRODUCT_CATEGORY } from "@/constants/insurance";
-import { offers } from "@/lib/data/mock-offers";
+import useGetOffers from "@/hooks/api/useGetOffers";
 import {
     Bar,
     BarChart,
@@ -19,12 +19,24 @@ import {
     YAxis,
 } from "recharts";
 
+type OfferType = {
+  id: number;
+  title: string;
+  price: number;
+  createdAt: string;
+  productType: string;
+  insuranceType: string;
+};
+
 export default function ChartsDashboard() {
+    const { data, isLoading, error } = useGetOffers();
+    const offers = data?.offers || [];
+
     const productCategoryData = Object.values(PRODUCT_CATEGORY).map(category => {
-        const count = offers.filter(offer => offer.productType === category).length;
+        const count = offers.filter((offer: OfferType) => offer.productType === category).length;
         const totalValue = offers
-            .filter(offer => offer.productType === category)
-            .reduce((sum, offer) => sum + offer.price, 0);
+            .filter((offer: OfferType) => offer.productType === category)
+            .reduce((sum: number, offer: OfferType) => sum + offer.price, 0);
         
         return {
             name: category,
@@ -32,11 +44,12 @@ export default function ChartsDashboard() {
             value: totalValue
         };
     }).filter(item => item.count > 0);
+    
     const insuranceTypeData = Object.values(INSURANCE_CATEGORY).map(type => {
-        const count = offers.filter(offer => offer.insuranceType === type).length;
+        const count = offers.filter((offer: OfferType) => offer.insuranceType === type).length;
         const totalValue = offers
-            .filter(offer => offer.insuranceType === type)
-            .reduce((sum, offer) => sum + offer.price, 0);
+            .filter((offer: OfferType) => offer.insuranceType === type)
+            .reduce((sum: number, offer: OfferType) => sum + offer.price, 0);
         
         return {
             name: type,
@@ -44,15 +57,26 @@ export default function ChartsDashboard() {
             value: totalValue
         };
     }).filter(item => item.count > 0);
-    const sortedOffers = [...offers].sort((a, b) => 
+    
+    const sortedOffers = [...offers].sort((a: OfferType, b: OfferType) => 
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
-    const priceTimelineData = sortedOffers.map(offer => ({
+    
+    const priceTimelineData = sortedOffers.map((offer: OfferType) => ({
         name: new Date(offer.createdAt).toLocaleDateString(),
         price: offer.price,
         product: offer.productType
     }));
+    
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
+
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-80">Loading charts data...</div>;
+    }
+
+    if (error) {
+        return <div className="flex justify-center items-center h-80 text-red-500">Error loading data: {error.error}</div>;
+    }
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
