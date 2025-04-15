@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: my_postgres_db
     restart: unless-stopped
     environment:
@@ -11,3 +13,4 @@ services:
       POSTGRES_DB: mydatabase
     ports:
       - "5432:5432"
+
