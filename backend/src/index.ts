@@ -23,7 +23,7 @@ fastify.register(import("@fastify/cors"), {
 fastify.addContentTypeParser(
   "application/json",
   { parseAs: "string" },
-  function (req, body: string, done) {
+  function (_, body: string, done) {
     if (body === "") {
       done(null, {});
     } else {
@@ -47,7 +47,7 @@ fastify.register(import("@fastify/cookie"), {
 
 fastify.register(registerRoutes);
 
-fastify.get("/", async (request, reply) => {
+fastify.get("/", async () => {
   return { message: "Welcome to InsureTex API" };
 });
 

@@ -16,7 +16,7 @@ type OfferBody = {
 
 export default async function offerRoutes(fastify: FastifyInstance) {
   fastify.get("/", {
-    handler: async (request, reply) => {
+    handler: async (_, reply) => {
       try {
         const offers = await db.select().from(offersTable);
         return { offers };

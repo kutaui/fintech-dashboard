@@ -47,7 +47,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.post("/logout", async (request, reply) => {
+  fastify.post("/logout", async (_, reply) => {
     reply.clearCookie(COOKIE_NAME, { path: "/" });
 
     return {

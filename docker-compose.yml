@@ -12,7 +12,6 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
       - ./backend/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     networks:
       - finsuretex_network
@@ -34,7 +33,6 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      # Override DATABASE_URL for Docker networking
       DATABASE_URL: postgresql://admin:adminpass@postgres:5432/mydatabase
     ports:
       - "3001:3001"
@@ -59,7 +57,3 @@ services:
 networks:
   finsuretex_network:
     driver: bridge
-
-volumes:
-  postgres_data:
-
