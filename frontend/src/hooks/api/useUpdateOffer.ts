@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { apiFetch } from "./config";
 
 type OfferInput = {
@@ -28,6 +29,10 @@ export default function useUpdateOffer() {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["offers"] });
       queryClient.invalidateQueries({ queryKey: ["offers", variables.id] });
+      toast.success("Offer updated successfully");
+    },
+    onError: () => {
+      toast.error("Failed to update offer");
     },
   });
 }

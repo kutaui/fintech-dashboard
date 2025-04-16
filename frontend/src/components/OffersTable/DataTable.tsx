@@ -35,17 +35,14 @@ type PriceFilter = {
 type DataTableProps<TData, TValue> = {
 	columns: ColumnDef<TData, TValue>[]
 	data?: TData[]
-	onAddOffer?: (newOffer: OfferType) => void
 } 
 
 export function DataTable<TData, TValue>({
 	columns,
 	data: initialData,
-	onAddOffer,
 }: DataTableProps<TData, TValue>) {
 	const { data: apiData, isLoading, isError } = useGetOffers()
 	const data = initialData || (apiData?.offers as TData[]) || []
-	
 	const [sorting, setSorting] = useState<SortingState>([])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({
@@ -92,29 +89,29 @@ export function DataTable<TData, TValue>({
 		table.setPageIndex(pageIndex)
 	}, [pageIndex, table])
 
-	const handlePageChange = (newPage: number) => {
+	function handlePageChange(newPage: number) {
 		setPageIndex(newPage)
 	}
 
-	const handlePreviousPage = () => {
+	function handlePreviousPage() {
 		if (pageIndex > 0) {
 			setPageIndex(pageIndex - 1)
 		}
 	}
 
-	const handleNextPage = () => {
+	function handleNextPage() {
 		if (pageIndex < pageCount - 1) {
 			setPageIndex(pageIndex + 1)
 		}
 	}
 
-	const handlePageSizeChange = (value: string) => {
+	function handlePageSizeChange(value: string) {
 		const newPageSize = parseInt(value)
 		setPageSize(newPageSize)
 		setPageIndex(0)
 	}
 	
-	const applyFilters = () => {
+	function applyFilters() {
 		if (priceRange.min && !isNaN(Number(priceRange.min))) {
 			const minValue = Number(priceRange.min)
 			if (minValue > 0) {
@@ -152,7 +149,7 @@ export function DataTable<TData, TValue>({
 		}
 	}
 
-	const resetFilters = () => {
+	function resetFilters() {
 		setPriceRange({ min: '', max: '' })
 		setSelectedProductTypes([])
 		setSelectedInsuranceTypes([])
@@ -161,7 +158,7 @@ export function DataTable<TData, TValue>({
 		table.getColumn('insuranceType')?.setFilterValue(undefined)
 	}
 
-	const handleProductTypeChange = (type: string) => {
+	function handleProductTypeChange(type: string) {
 		setSelectedProductTypes((prev) =>
 			prev.includes(type)
 				? prev.filter((item) => item !== type)
@@ -169,7 +166,7 @@ export function DataTable<TData, TValue>({
 		)
 	}
 
-	const handleInsuranceTypeChange = (type: string) => {
+	function handleInsuranceTypeChange(type: string) {
 		setSelectedInsuranceTypes((prev) =>
 			prev.includes(type)
 				? prev.filter((item) => item !== type)
@@ -207,7 +204,7 @@ export function DataTable<TData, TValue>({
 						applyFilters={applyFilters}
 						resetFilters={resetFilters}
 					/>
-					<AddOfferDialog onAddOffer={onAddOffer} />
+					<AddOfferDialog />
 				</div>
 			</div>
 			<div className="border rounded-md overflow-hidden">

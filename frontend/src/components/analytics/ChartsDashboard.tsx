@@ -31,7 +31,6 @@ type OfferType = {
 export default function ChartsDashboard() {
     const { data, isLoading, error } = useGetOffers();
     const offers = data?.offers || [];
-
     const productCategoryData = Object.values(PRODUCT_CATEGORY).map(category => {
         const count = offers.filter((offer: OfferType) => offer.productType === category).length;
         const totalValue = offers
@@ -44,7 +43,6 @@ export default function ChartsDashboard() {
             value: totalValue
         };
     }).filter(item => item.count > 0);
-    
     const insuranceTypeData = Object.values(INSURANCE_CATEGORY).map(type => {
         const count = offers.filter((offer: OfferType) => offer.insuranceType === type).length;
         const totalValue = offers
@@ -57,17 +55,14 @@ export default function ChartsDashboard() {
             value: totalValue
         };
     }).filter(item => item.count > 0);
-    
     const sortedOffers = [...offers].sort((a: OfferType, b: OfferType) => 
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
-    
     const priceTimelineData = sortedOffers.map((offer: OfferType) => ({
         name: new Date(offer.createdAt).toLocaleDateString(),
         price: offer.price,
         product: offer.productType
     }));
-    
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
 
     if (isLoading) {

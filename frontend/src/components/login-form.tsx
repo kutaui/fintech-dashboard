@@ -42,17 +42,16 @@ export function LoginForm({
   const { mutate: login } = useLogin()
   const { isAuthenticated, user } = useAuthStore()
   const { isLoading: isAuthLoading, refetch } = useGetUser()
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues,
+  })
 
   useEffect(() => {
     if (isAuthenticated && !isAuthLoading) {
       router.push("/dashboard")
     }
   }, [isAuthenticated, isAuthLoading, router, user])
-
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginFormSchema),
-    defaultValues,
-  })
 
   function onSubmit(data: LoginFormValues) {
     setIsLoading(true)
@@ -65,9 +64,7 @@ export function LoginForm({
         onSuccess: () => {
           setIsLoading(false)
           
-          // Force a refetch of the user data to ensure auth state is updated
           refetch().then(() => {
-            // Manual push to dashboard after successful login
             router.push("/dashboard")
           })
         },

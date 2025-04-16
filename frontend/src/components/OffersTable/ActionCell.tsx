@@ -23,7 +23,7 @@ import { useState } from 'react'
 import { EditOfferDialog } from './EditOfferDialog'
 import { ViewDetailsDialog } from './ViewDetailsDialog'
 
-interface ActionCellProps {
+type ActionCellProps = {
   offer: OfferType
 }
 
@@ -34,12 +34,12 @@ export function ActionCell({ offer }: ActionCellProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
-  const handleDelete = () => {
+  function handleDelete() {
     deleteOffer(offer.id)
     setDeleteDialogOpen(false)
   }
 
-  const handleEditOffer = (updatedOffer: OfferType) => {
+  function handleEditOffer(updatedOffer: OfferType) {
     updateOffer(updatedOffer)
     setEditDialogOpen(false)
   }

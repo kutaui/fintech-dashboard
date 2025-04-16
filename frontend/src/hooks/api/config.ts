@@ -35,13 +35,10 @@ export async function apiFetch<T>(
       status: response.status,
     } as ApiError;
 
-    // If we get a 401 Unauthorized error, we need to clear the user from the store
     if (error.status === 401) {
-      // We can't use the hook directly here since this is not a React component
-      // Instead, we'll access the store directly with getState/setState
       const { logout, setIsLoading } = useAuthStore.getState();
       logout();
-      setIsLoading(false); // Ensure we're not stuck in loading state
+      setIsLoading(false);
     }
 
     throw error;

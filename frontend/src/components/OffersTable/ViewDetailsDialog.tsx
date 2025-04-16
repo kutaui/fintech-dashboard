@@ -12,7 +12,7 @@ import {
 import { formatDate } from '@/lib/utils'
 import { Dispatch, SetStateAction, useState } from 'react'
 
-interface ViewDetailsDialogProps {
+type ViewDetailsDialogProps = {
 	offer: OfferType
 	trigger?: React.ReactNode
 	open?: boolean
@@ -26,8 +26,6 @@ export function ViewDetailsDialog({
 	onOpenChange: setControlledOpen 
 }: ViewDetailsDialogProps) {
 	const [internalOpen, setInternalOpen] = useState(false)
-	
-	// Use either controlled or uncontrolled state
 	const open = controlledOpen !== undefined ? controlledOpen : internalOpen
 	const setOpen = setControlledOpen || setInternalOpen
 

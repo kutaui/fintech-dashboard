@@ -17,7 +17,7 @@ import { INSURANCE_CATEGORY, PRODUCT_CATEGORY } from '@/constants/insurance'
 import { FilterIcon } from 'lucide-react'
 import { useState } from 'react'
 
-interface FilterDialogProps {
+type FilterDialogProps = {
     priceRange: { min: string; max: string }
     setPriceRange: React.Dispatch<React.SetStateAction<{ min: string; max: string }>>
     selectedProductTypes: string[]
@@ -40,12 +40,12 @@ export function FilterDialog({
 }: FilterDialogProps) {
     const [open, setOpen] = useState(false)
 
-    const handleApply = () => {
+    function handleApply() {
         applyFilters()
         setOpen(false)
     }
 
-    const handleReset = () => {
+    function handleReset() {
         resetFilters()
         setOpen(false)
     }

@@ -35,7 +35,7 @@ const offerFormSchema = z.object({
 
 type OfferFormValues = z.infer<typeof offerFormSchema>
 
-interface EditOfferDialogProps {
+type EditOfferDialogProps = {
 	offer: OfferType
 	onEditOffer?: (updatedOffer: OfferType) => void
 	trigger?: React.ReactNode
@@ -52,11 +52,8 @@ export function EditOfferDialog({
 }: EditOfferDialogProps) {
 	const { isUpdating } = useOffers()
 	const [internalOpen, setInternalOpen] = useState(false)
-	
-	// Use either controlled or uncontrolled state
 	const open = controlledOpen !== undefined ? controlledOpen : internalOpen
 	const setOpen = setControlledOpen || setInternalOpen
-	
 	const form = useForm<OfferFormValues>({
 		resolver: zodResolver(offerFormSchema),
 		defaultValues: {
@@ -67,7 +64,6 @@ export function EditOfferDialog({
 		}
 	})
 
-	// Reset form when offer changes
 	useEffect(() => {
 		if (offer) {
 			form.reset({

@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select'
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react'
 
-interface PaginationProps {
+type PaginationProps = {
   pageIndex: number
   pageSize: number
   pageCount: number
@@ -36,7 +36,7 @@ export function Pagination({
   const firstVisibleRow = totalItems === 0 ? 0 : pageIndex * pageSize + 1
   const lastVisibleRow = Math.min((pageIndex + 1) * pageSize, totalItems)
 
-  const generatePagination = () => {
+  function generatePagination() {
     if (pageCount <= 7) {
       return Array.from({ length: pageCount }, (_, i) => i + 1)
     }

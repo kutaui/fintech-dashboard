@@ -1,7 +1,7 @@
 import { User, useAuthStore } from "@/store/Auth";
 import { useQuery } from "@tanstack/react-query";
-import { ApiError, apiFetch } from "./config";
 import { useEffect } from "react";
+import { ApiError, apiFetch } from "./config";
 
 type UserResponse = {
   user: User;
@@ -37,7 +37,6 @@ export default function useGetUser() {
     refetchInterval: false,
   });
 
-  // Handle success, error, and settled cases manually
   const { data, error, status } = result;
 
   useEffect(() => {
@@ -46,18 +45,15 @@ export default function useGetUser() {
       setIsAuthenticated(true);
       setIsLoading(false);
     } else if (status === "error" && error) {
-      // For 401 errors or connection errors, handle similar to unauthorized
       if (
         error.status === 401 ||
         error.error?.includes("fetch failed") ||
         error.error?.includes("Failed to fetch") ||
         error.error?.includes("Connection refused")
       ) {
-        // Clear user data for both unauthorized and connection issues
         setUser(null);
         setIsAuthenticated(false);
 
-        // Remove auth cookies explicitly from client side for connection issues
         if (typeof document !== "undefined") {
           document.cookie =
             "auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -65,9 +61,7 @@ export default function useGetUser() {
       }
       setIsLoading(false);
     } else if (status === "pending") {
-      // Keep loading state true
     } else {
-      // For any other state, ensure loading is false
       setIsLoading(false);
     }
   }, [status, data, error, setUser, setIsAuthenticated, setIsLoading]);

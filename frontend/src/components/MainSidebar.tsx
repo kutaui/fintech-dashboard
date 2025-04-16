@@ -3,6 +3,7 @@
 import {
 	Sidebar,
 	SidebarContent,
+	SidebarFooter,
 	SidebarHeader,
 	SidebarInset,
 	SidebarMenu,
@@ -10,14 +11,13 @@ import {
 	SidebarMenuItem,
 	SidebarProvider,
 	SidebarTrigger,
-	SidebarFooter,
 } from '@/components/ui/sidebar'
+import useLogout from '@/hooks/api/useLogout'
 import { BarChart, Home, LogOut } from 'lucide-react'
 import Link from 'next/link'
-import useLogout from '@/hooks/api/useLogout'
 import { useRouter } from 'next/navigation'
 
-interface MainSidebarProps {
+type MainSidebarProps = {
 	children?: React.ReactNode
 }
 
@@ -25,7 +25,7 @@ export default function MainSidebar({ children }: MainSidebarProps) {
 	const { mutate: logout, isPending } = useLogout()
 	const router = useRouter()
 
-	const handleLogout = () => {
+	function handleLogout() {
 		logout(undefined, {
 			onSuccess: () => {
 				router.push('/login')

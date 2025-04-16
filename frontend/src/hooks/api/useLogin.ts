@@ -1,5 +1,6 @@
 import { User, useAuthStore } from "@/store/Auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { apiFetch } from "./config";
 
 type LoginCredentials = {
@@ -30,6 +31,10 @@ export default function useLogin() {
       setIsAuthenticated(true);
       queryClient.setQueryData(["user"], data.user);
       queryClient.invalidateQueries({ queryKey: ["user"] });
+      toast.success(`Welcome back, ${data.user.email}!`);
+    },
+    onError: () => {
+      toast.error("Login failed. Please check your credentials and try again.");
     },
   });
 }

@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { apiFetch } from "./config";
 
 type DeleteOfferResponse = {
@@ -17,6 +18,10 @@ export default function useDeleteOffer() {
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["offers"] });
       queryClient.invalidateQueries({ queryKey: ["offers", id] });
+      toast.success("Offer deleted successfully");
+    },
+    onError: () => {
+      toast.error("Failed to delete offer");
     },
   });
 }

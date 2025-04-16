@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { apiFetch } from "./config";
 
 type OfferInput = {
@@ -24,6 +25,10 @@ export default function useCreateOffer() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["offers"] });
+      toast.success("Offer created successfully");
+    },
+    onError: () => {
+      toast.error("Failed to create offer");
     },
   });
 }

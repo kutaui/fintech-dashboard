@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "./config";
 import { useAuthStore } from "@/store/Auth";
+import { toast } from "sonner";
 
 type LogoutResponse = {
   success: boolean;
@@ -21,6 +22,10 @@ export default function useLogout() {
       logout();
       queryClient.setQueryData(["user"], null);
       queryClient.invalidateQueries({ queryKey: ["user"] });
+      toast.success("Logged out successfully");
+    },
+    onError: () => {
+      toast.error("Logout failed. Please try again.");
     },
   });
 }
