@@ -42,11 +42,7 @@ const defaultValues: Partial<OfferFormValues> = {
 	insuranceType: undefined
 }
 
-interface AddOfferDialogProps {
-	onAddOffer?: (newOffer: OfferType) => void
-}
-
-export function AddOfferDialog({ onAddOffer }: AddOfferDialogProps) {
+export function AddOfferDialog() {
 	const [open, setOpen] = useState(false)
 	const { mutate: createOffer, isPending } = useCreateOffer()
 	
